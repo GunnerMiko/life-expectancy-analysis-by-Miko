@@ -1,4 +1,4 @@
-# Life expectancy analysis by Miko, based on Life Expectancy dataset from www.kaggle.com
+# Life expectancy analysis by Miko, based on Life Expectancy dataset from www.kaggle.com.
 
 # Install Required Packages
 install.packages("tibble")
@@ -224,33 +224,28 @@ life_data_model <- life_data_clean_outliers %>%
   mutate(Status = as.factor(Status),
          Country = as.factor(Country))
 
-# Check for zero-variance columns before modeling
-zero_var_cols <- life_data_model %>%
-  summarise(across(everything(), n_distinct)) %>%
-  gather() %>%
-  filter(value == 1) %>%
-  pull(key)
-
-# Remove zero-variance columns if any
-if (length(zero_var_cols) > 0) {
-  life_data_model <- life_data_model %>% select(-all_of(zero_var_cols))
-  cat("Removed zero-variance columns:", paste(zero_var_cols, collapse=", "), "\n")
-}
-
-# Replace infinite values with NA and remove rows with NA
+# Handle infinite values and drop NA values safely
 life_data_model <- life_data_model %>%
   mutate(across(where(is.numeric), ~ ifelse(is.infinite(.), NA, .))) %>%
   drop_na()
 
-# Define Recipe for Data Preprocessing
+# Check dataset dimensions
+cat("Train data dimensions:", dim(life_data_model), "\n")
+
+# Define Preprocessing Recipe
 life_recipe <- recipe(`Life expectancy` ~ ., data = life_data_model) %>%
-  step_zv(all_numeric_predictors()) %>%  # Remove zero variance predictors
-  step_log(all_numeric_predictors(), base = 2, skip = TRUE) %>%  # Log-transform predictors (skip for zero/negative)
+  step_impute_mean(all_numeric_predictors()) %>%  # Fill missing values with mean
+  step_zv(all_numeric_predictors()) %>%  # Remove zero-variance predictors
+  step_mutate(across(where(is.numeric), ~ ifelse(is.infinite(.), NA, .))) %>%  # Handle Inf values
   step_normalize(all_numeric_predictors()) %>%  # Normalize numerical features
   step_dummy(all_nominal_predictors())  # Encode categorical variables
 
+
+###########Model Training & Evaluation########
+##############################################
+
 # Split Data into Train & Test Sets
-set.seed(123)  # For reproducibility
+set.seed(123)
 data_split <- initial_split(life_data_model, prop = 0.8)
 train_data <- training(data_split)
 test_data <- testing(data_split)
@@ -273,28 +268,49 @@ test_predictions <- life_model %>%
   predict(test_data) %>%
   bind_cols(test_data)
 
-# Compute Metrics (RMSE & R-squared)
+# Compute Model Performance Metrics
 metrics_results <- test_predictions %>%
   metrics(truth = `Life expectancy`, estimate = .pred)
 
 # Print Model Performance
 print(metrics_results)
 
-# Scatter Plot: Actual vs. Predicted Life Expectancy
+
+############################## Visualization #########################
+######################################################################
+
+#Scatter Plot: Actual vs. Predicted
 ggplot(test_predictions, aes(x = `Life expectancy`, y = .pred)) +
-  geom_point(color = "blue", alpha = 0.5) +  # Scatter plot
-  geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +  # Perfect predictions line
+  geom_point(color = "blue", alpha = 0.5) +  
+  geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +  
   labs(title = "Actual vs. Predicted Life Expectancy",
        x = "Actual Life Expectancy",
        y = "Predicted Life Expectancy") +
   theme_minimal()
 
-# While using Linear regression modelling, which assumes a straight-line relationship,
-# the model is giving following results,the model explains 77.4% of the variance in life expectancy, with an average prediction error of 1.59 years (RMSE)
+#Residual Plot
+ggplot(test_predictions, aes(x = .pred, y = `Life expectancy` - .pred)) +
+  geom_point(alpha = 0.5, color = "purple") +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residual Plot",
+       x = "Predicted Life Expectancy",
+       y = "Residuals (Actual - Predicted)") +
+  theme_minimal()
 
-# 1 rmse    standard       1.59  - model's predictions for life expectancy deviate by 1.59 years from the actual life expectancy values
-# 2 rsq     standard       0.774 - 77.4% of the variability in life expectancy is explained was explained by model
-# 3 mae     standard       1.12 - model's predictions for life expectancy deviate by 1.12 years from the actual life expectancy values
+#Histogram of Prediction Errors
+ggplot(test_predictions, aes(x = `Life expectancy` - .pred)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(title = "Histogram of Prediction Errors",
+       x = "Prediction Error (Residuals)",
+       y = "Count") +
+  theme_minimal()
+
+# While using Linear regression modelling, which assumes a straight-line relationship, I obtained following final results: 
+
+
+# 1 rmse    standard       1.46  - model's predictions for life expectancy deviate by 1.46 years from the actual life expectancy values
+# 2 rsq     standard       0.880 - 88.0% of the variability in life expectancy is explained was explained by model
+# 3 mae     standard       0.873 - model's predictions for life expectancy deviate by 0.87 years from the actual life expectancy values
 
 
 
