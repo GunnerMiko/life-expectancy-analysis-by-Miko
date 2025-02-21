@@ -289,7 +289,7 @@ ggplot(test_predictions, aes(x = `Life expectancy`, y = .pred)) +
        y = "Predicted Life Expectancy") +
   theme_minimal()
 
-# While using Linear regression modelling, assumes a straight-line relationship,
+# While using Linear regression modelling, which assumes a straight-line relationship,
 # the model is giving following results,the model explains 77.4% of the variance in life expectancy, with an average prediction error of 1.59 years (RMSE)
 
 # 1 rmse    standard       1.59  - model's predictions for life expectancy deviate by 1.59 years from the actual life expectancy values
