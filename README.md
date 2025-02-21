@@ -1,5 +1,10 @@
 ---
-output: pdf_document
+output: 
+  html_notebook: 
+    theme: journal
+    number_sections: true
+editor_options: 
+  chunk_output_type: inline
 ---
 # life-expectancy-analysis-by-Miko
 Analysis and prediction of life expectancy using R
