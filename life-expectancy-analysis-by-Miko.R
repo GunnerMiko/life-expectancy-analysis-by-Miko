@@ -309,7 +309,7 @@ ggplot(test_predictions, aes(x = `Life expectancy` - .pred)) +
 
 
 # 1 rmse    standard       1.46  - model's predictions for life expectancy deviate by 1.46 years from the actual life expectancy values
-# 2 rsq     standard       0.880 - 88.0% of the variability in life expectancy is explained was explained by model
+# 2 rsq     standard       0.880 - 88.0% of the variability in life expectancy was explained by model
 # 3 mae     standard       0.873 - model's predictions for life expectancy deviate by 0.87 years from the actual life expectancy values
 
 
