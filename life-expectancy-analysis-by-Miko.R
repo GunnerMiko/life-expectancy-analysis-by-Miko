@@ -215,7 +215,7 @@ ggplot(data = correlation_matrix_df, aes(x = Variable1, y = Variable2, fill = Co
 
 
 ######################################## Part 1B of the project: Building a Prediction Model with linear regression ########################################
-##################################################################################################################################
+######################################## How accurately can Life expectancy be predicted? ##################################################################
 
 # Preparing the Data for Modeling
 
