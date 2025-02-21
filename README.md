@@ -1,3 +1,6 @@
+---
+output: pdf_document
+---
 # life-expectancy-analysis-by-Miko
 Analysis and prediction of life expectancy using R
 The analysis are based on the dataset from the World Health Organization (WHO) and the World Bank.
